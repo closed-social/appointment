@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	<meta property="og:title" content="我发起了一场{{act.name}}" />
+	<meta property="og:description" content="{{act.desc}}" />
+    <meta property="og:site_name" content="闭社鸽鸽鸽工具" />
+    <meta property="og:image" content="/img/pigeonhead2.png" />
+	<link rel="icon" type="image/png" href="/img/pigeonhead2.png"/>
+    
+	<link href="https://cdn.bootcss.com/twitter-bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+	<script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+	<script src="https://cdn.bootcss.com/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+	<script src="https://cdn.bootcdn.net/ajax/libs/blueimp-md5/2.17.0/js/md5.min.js"></script>
+	<title>我发起了一场{{act.name}}</title>
+	<style>
+	    .card {
+	        margin: 20px 0;
+	    }
+	    .card-text {
+	        padding: 20px 0;
+	    }
+	    .par {
+	        margin-right: 8px;
+	        margin-bottom: 5px;
+	        padding: 5px;
+	        background: #80808020;
+	        border-radius: 10%;
+	        color: black;
+	        display: inline-block;
+	    }
+	</style>
+</head>
+<body background="/img/bg.jpg">
+	
+	<div style="max-width:700px;" class="container">
+		<div align='center' style='background-color:rgba(180,180,250,0.5);padding:35px 0 20px;color:#ffffff;margin-bottom:40px'>
+			<h2> 我发起了一场{{act.name}}</h2>
+	    </div>
+        <p style="text-align:right"> <a href="..">返回列表</a></p>
+        
+        <div class="card">
+	        <div class="card-body">
+	            <h5 class="card-title">{{act.name}}</h5>
+                <h6 class="card-subtitle mb-2 text-muted">{{act.date}}</h6>
+                <h6 class="card-subtitle mb-2 text-muted">{{act.desc}}</h6>
+                <p class="card-text">
+                    {% for p in act.pars %}
+                    <a href="{{p.url}}" title="{{p.disp}}" class="par">
+                    <span>
+                        <img src="{{p.avat}}" style="height:22px; border-radius: 50%;">
+                    
+                    {{p.disp}}
+                    </span>
+                    </a>
+                    {% endfor %}
+                </p>
+                <a href="join" class="btn btn-success">加入</a>
+           </div>
+        </div>
+        
+	</div>
+
+</body>
+</html>

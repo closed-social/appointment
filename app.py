@@ -1,7 +1,9 @@
 from flask import Flask, request, session, render_template, send_from_directory, abort, redirect
 from flask_sqlalchemy import SQLAlchemy
+from flask_login  import LoginManager, login_user, logout_user, login_required, current_user
 from mastodon import Mastodon
 import re, random, string, os, hashlib
+from datetime import datetime, date
 
 CLIENT_ID = 'mYh-LeEJwrSUk2r4aSEXhTtO3g6bS8jO-Zfw9ZETY0U'
 CLIENT_SEC = open('client.secret', 'r').read().strip()
@@ -25,6 +27,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ask.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JSON_AS_ASCII'] = False
 
+login_manager = LoginManager()
+login_manager.init_app(app)
+
 db = SQLAlchemy(app)
 
 us = db.Table('us',
@@ -40,11 +45,13 @@ class Activity(db.Model):
     pars = db.relationship('User', secondary=us, lazy='subquery',
         backref=db.backref('activities', lazy=True))
 
-    def __init__(self, date):
+    def __init__(self, name, desc, date):
+        self.name = name
+        self.desc = desc
         self.date = date
 
     def __repr__(self):
-        return f"@{self.name}[{self.desc}](self.date)"
+        return f"{self.name}[{self.desc}](self.date)"
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -59,6 +66,29 @@ class User(db.Model):
     def __repr__(self):
         return f"@{self.acct}[{self.disp}]"
 
+    @property
+    def is_active(self):
+        return True
+
+    @property
+    def is_authenticated(self):
+        return True
+
+    @property
+    def is_anonymous(self):
+        return False
+
+    def get_id(self):
+        return self.acct
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.filter_by(acct=user_id).first()
+
+@login_manager.unauthorized_handler
+def unauthorized():
+    return redirect(LOGIN_URL)
+
 @app.route('/img/<path:path>')
 def send_img(path):
     return send_from_directory('static/img', path)
@@ -68,27 +98,21 @@ def root_footer():
     return app.send_static_file('footer.html')
 
 @app.route('/appointment/')
+@login_required
 def home():
-    acct = session.get('user')
-    if not acct:
-        return redirect(LOGIN_URL)
-
-    print(session)
-    u = User.query.filter_by(acct=acct).first()
-    if not u:
-        return redirect('logout')
-
-    return render_template('list.html', u=u)
+    if 'all' in request.args:
+        aq = Activity.query
+    else:
+        aq = Activity.query.filter(Activity.date >= date.today())
+    
+    return render_template('list.html', u=current_user, a=aq.order_by(Activity.date).all())
 
 @app.route('/appointment/auth')
-def log_in():
+def auth():
     code = request.args.get('code')
     client = Mastodon(client_id = CLIENT_ID, client_secret = CLIENT_SEC, api_base_url = API_BASE_URL)
     token = client.log_in(code=code, redirect_uri=REDIRECT_URI, scopes=['read:accounts'])
     info = client.account_verify_credentials()
-
-    session['user'] = info.acct
-    session.permanent = True
 
     u = User.query.filter_by(acct=info.acct).first()
     if not u:
@@ -101,12 +125,54 @@ def log_in():
     
     db.session.commit()
 
+    login_user(u, remember=True)
+
     return redirect('.') 
 
 @app.route('/appointment/logout')
-def log_out():
-    session.pop('user')
+@login_required
+def logout():
+    logout_user()
     return redirect('.')
+
+@app.route('/appointment/new', methods=['POST'])
+@login_required
+def new():
+    name = request.form.get('name')
+    date = datetime.strptime(request.form.get('date'), "%Y-%m-%d").date()
+
+    desc = request.form.get('desc') or ''
+    print(name, date, desc)
+    if not name or not date or len(name)>16 or len(desc)>64:
+        abort(422)
+
+    a = Activity(name, desc, date)
+    a.pars = [current_user]
+    db.session.add(a)
+    db.session.commit()
+
+    return redirect('.')
+
+@app.route('/appointment/<int:aid>/<md5>')
+def detail(aid, md5):
+    act = Activity.query.get(aid)
+    if not act or md5 != hashlib.md5(act.name.encode("utf-8")).hexdigest()[0:7]:
+        abort(404)
+
+    return render_template('detail.html', act=act)
+
+@app.route('/appointment/<int:aid>/join')
+@login_required
+def join(aid):
+    act = Activity.query.get(aid)
+    if not act:
+        abort(404)
+    
+    if current_user not in act.pars:
+        act.pars.append(current_user)
+        db.session.commit()
+    
+    return redirect(hashlib.md5(act.name.encode("utf-8")).hexdigest()[0:7])
 
 if __name__ == '__main__':
     app.run(debug=True)
