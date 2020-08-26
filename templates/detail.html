@@ -19,7 +19,7 @@
 	        margin: 20px 0;
 	    }
 	    .card-text {
-	        padding: 20px 0;
+	        padding: 10px 0;
 	    }
 	    .par {
 	        margin-right: 8px;
@@ -36,7 +36,7 @@
 	
 	<div style="max-width:700px;" class="container">
 		<div align='center' style='background-color:rgba(180,180,250,0.5);padding:35px 0 20px;color:#ffffff;margin-bottom:40px'>
-			<h2> 我发起了一场{{act.name}}</h2>
+			<h2> 我发起了一场<b>{{act.name}}</b></h2>
 	    </div>
         <p style="text-align:right"> <a href="..">返回列表</a></p>
         
@@ -56,7 +56,16 @@
                     </a>
                     {% endfor %}
                 </p>
-                <a href="join" class="btn btn-success">加入</a>
+                {% if joined %}
+                <form action="left" method="post">
+                <button type="submit" class="btn btn-danger">退出</button>
+                </form>
+                <small>(所有人退出后活动将被删除)</small>
+                {% else %}
+                <form action="join" method="post">
+                <button type="submit" class="btn btn-success">加入</button>
+                </form>
+                {% endif %}
            </div>
         </div>
         

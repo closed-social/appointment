@@ -146,12 +146,12 @@ def new():
     if not name or not date or len(name)>16 or len(desc)>64:
         abort(422)
 
-    a = Activity(name, desc, date)
-    a.pars = [current_user]
-    db.session.add(a)
+    act = Activity(name, desc, date)
+    act.pars = [current_user]
+    db.session.add(act)
     db.session.commit()
 
-    return redirect('.')
+    return redirect(f"{act.id}/{hashlib.md5(act.name.encode('utf-8')).hexdigest()[0:7]}")
 
 @app.route('/appointment/<int:aid>/<md5>')
 def detail(aid, md5):
@@ -159,9 +159,9 @@ def detail(aid, md5):
     if not act or md5 != hashlib.md5(act.name.encode("utf-8")).hexdigest()[0:7]:
         abort(404)
 
-    return render_template('detail.html', act=act)
+    return render_template('detail.html', act=act, joined=(current_user and current_user in act.pars))
 
-@app.route('/appointment/<int:aid>/join')
+@app.route('/appointment/<int:aid>/join', methods=['POST'])
 @login_required
 def join(aid):
     act = Activity.query.get(aid)
@@ -173,6 +173,22 @@ def join(aid):
         db.session.commit()
     
     return redirect(hashlib.md5(act.name.encode("utf-8")).hexdigest()[0:7])
+
+@app.route('/appointment/<int:aid>/left', methods=['POST'])
+@login_required
+def left(aid):
+    act = Activity.query.get(aid)
+    if not act:
+        abort(404)
+    
+    if current_user in act.pars:
+        act.pars.remove(current_user)
+        if not act.pars:
+            db.session.delete(act)
+        db.session.commit()
+    
+    return redirect('..')
+    
 
 if __name__ == '__main__':
     app.run(debug=True)
