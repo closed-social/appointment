@@ -8,7 +8,7 @@
     <meta property="og:site_name" content="闭社鸽鸽鸽工具" />
     <meta property="og:image" content="/img/pigeonhead2.png" />
 	<link rel="icon" type="image/png" href="/img/pigeonhead2.png"/>
-    
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
 	<link href="https://cdn.bootcss.com/twitter-bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
 	<script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
 	<script src="https://cdn.bootcss.com/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
@@ -38,16 +38,35 @@
 		<div align='center' style='background-color:rgba(180,180,250,0.5);padding:35px 0 20px;color:#ffffff;margin-bottom:40px'>
 			<h2> 我发起了一场<b>{{act.name}}</b></h2>
 	    </div>
-        <p style="text-align:right"> <a href="..">返回列表</a></p>
+        <p style="text-align:right"> <a href="..">返回列表 <i class="fa fa-home"></i></a></p>
         
         <div class="card">
 	        <div class="card-body">
 	            <h5 class="card-title">{{act.name}}</h5>
                 <h6 class="card-subtitle mb-2 text-muted">{{act.date}}</h6>
-                <h6 class="card-subtitle mb-2 text-muted">{{act.desc}}</h6>
+                <h6 class="card-subtitle mb-2 text-muted" id="desc">{{act.desc}}
+                    {% if king %}
+                    <button class="btn btn-link" style="color:black" id="edit"><i class="fa fa-edit"></i></button>
+                    {% endif %}
+                </h6>
+                {% if king %}
+                <form action="update" method="post" id="updateDesc" style="display:none">
+                    <div class="form-group">
+                    <textarea name="desc" class="form-control" rows="2" placeholder="备注" maxlength=64>{{act.desc}}</textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">更新</button>
+                </form>
+                <script>
+                $("#edit").click(()=>{
+                    $("#desc").hide();
+                    $("#updateDesc").show();
+                });
+                </script>
+                {% endif %}
+                
                 <p class="card-text">
                     {% for p in act.pars %}
-                    <a href="{{p.url}}" title="{{p.disp}}" class="par">
+                    <a href="{{p.url}}" title="{{p.disp}} @{{p.acct}}" class="par">
                     <span>
                         <img src="{{p.avat}}" style="height:22px; border-radius: 50%;">
                     
@@ -58,12 +77,12 @@
                 </p>
                 {% if joined %}
                 <form action="left" method="post">
-                <button type="submit" class="btn btn-danger">退出</button>
+                    <button type="submit" class="btn btn-danger">退出</button>
                 </form>
                 <small>(所有人退出后活动将被删除)</small>
                 {% else %}
                 <form action="join" method="post">
-                <button type="submit" class="btn btn-success">加入</button>
+                    <button type="submit" class="btn btn-success">加入</button>
                 </form>
                 {% endif %}
            </div>

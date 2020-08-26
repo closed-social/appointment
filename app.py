@@ -10,7 +10,7 @@ CLIENT_SEC = open('client.secret', 'r').read().strip()
 API_BASE_URL = 'https://thu.closed.social'
 
 WORK_URL = 'https://closed.social'
-WORK_URL = 'http://127.0.0.1:5000'
+#WORK_URL = 'http://127.0.0.1:5000'
 
 REDIRECT_URI = WORK_URL + '/appointment/auth'
 
@@ -140,9 +140,8 @@ def logout():
 def new():
     name = request.form.get('name')
     date = datetime.strptime(request.form.get('date'), "%Y-%m-%d").date()
-
     desc = request.form.get('desc') or ''
-    print(name, date, desc)
+    
     if not name or not date or len(name)>16 or len(desc)>64:
         abort(422)
 
@@ -153,13 +152,35 @@ def new():
 
     return redirect(f"{act.id}/{hashlib.md5(act.name.encode('utf-8')).hexdigest()[0:7]}")
 
+@app.route('/appointment/<int:aid>/update', methods=['POST'])
+@login_required
+def update(aid):
+    act = Activity.query.get(aid)
+    if not act:
+        abort(404)
+
+    if not (current_user in act.pars and current_user == act.pars[0]):
+        abort(403)
+
+    desc = request.form.get('desc') or ''
+    
+    if len(desc)>64:
+        abort(422)
+    
+    act.desc = desc
+    db.session.commit()
+    
+    return redirect(hashlib.md5(act.name.encode("utf-8")).hexdigest()[0:7])
+
 @app.route('/appointment/<int:aid>/<md5>')
 def detail(aid, md5):
     act = Activity.query.get(aid)
     if not act or md5 != hashlib.md5(act.name.encode("utf-8")).hexdigest()[0:7]:
         abort(404)
 
-    return render_template('detail.html', act=act, joined=(current_user and current_user in act.pars))
+    joined = current_user and current_user in act.pars
+    king = joined and current_user == act.pars[0]
+    return render_template('detail.html', act=act, joined=joined, king=king)
 
 @app.route('/appointment/<int:aid>/join', methods=['POST'])
 @login_required
@@ -188,7 +209,6 @@ def left(aid):
         db.session.commit()
     
     return redirect('..')
-    
 
 if __name__ == '__main__':
     app.run(debug=True)
