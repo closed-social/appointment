@@ -63,6 +63,13 @@
                 });
                 </script>
                 {% endif %}
+
+                {% if toot %}
+                <iframe src="{{toot.base}}/@{{toot.acct}}/{{toot.id}}/embed" class="mastodon-embed" style="max-width: 100%; border: 0" width="400" allowfullscreen="allowfullscreen"></iframe>
+                <script src="https://thu.closed.social/embed.js" async="async"></script>
+                <p><a href="{{toot.base}}/@{{toot.acct}}/{{toot.id}}" target="_blank"> 原嘟文 </a></p>
+                {% endif %}
+
                 <p class="card-text">
                     {% for p in act.pars %}
                     <a href="{{p.url}}" target="_blank" title="{{p.disp}} (@{{p.acct}})" class="par">

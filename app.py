@@ -180,7 +180,15 @@ def detail(aid, md5):
 
     joined = current_user and current_user in act.pars
     king = joined and current_user == act.pars[0]
-    return render_template('detail.html', act=act, joined=joined, king=king)
+
+    tl = re.findall('/@([a-zA-Z0-9_]+)/(\d+)', act.desc)
+    toot = {
+            'base': API_BASE_URL,
+            'acct': tl[0][0],
+            'id' : tl[0][1]
+    } if tl else None
+
+    return render_template('detail.html', act=act, joined=joined, king=king, toot=toot)
 
 @app.route('/appointment/<int:aid>/join', methods=['POST'])
 @login_required
