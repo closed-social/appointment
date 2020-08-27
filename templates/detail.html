@@ -63,14 +63,13 @@
                 });
                 </script>
                 {% endif %}
-                
                 <p class="card-text">
                     {% for p in act.pars %}
                     <a href="{{p.url}}" target="_blank" title="{{p.disp}} (@{{p.acct}})" class="par">
                     <span>
                         <img src="{{p.avat}}" style="height:22px; border-radius: 50%;">
                     
-                    {{p.disp}}
+                    {{p.disp or p.acct}}
                     </span>
                     </a>
                     {% endfor %}

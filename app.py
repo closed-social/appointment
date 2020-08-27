@@ -23,7 +23,7 @@ LOGIN_URL = Mastodon(api_base_url=API_BASE_URL) \
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = open('client.secret', 'r').read().strip()
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ask.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JSON_AS_ASCII'] = False
 
